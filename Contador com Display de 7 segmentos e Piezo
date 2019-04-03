@@ -1,0 +1,390 @@
+Pap BlindStop
+
+#define C 2550
+
+int speakerOut=5;
+int botao = A1;
+int paragem = A2;
+int led = 2;
+int led1 = 3;
+int led2 = 4;
+int val = 0;
+int counter = 0;
+int contador = 0;
+int estado_anterior=0;
+int estado_actual=0;
+int estado_actual0=0;
+int apito_ligado=0;
+int contador1=0;
+int melody[] = { C, C};
+int beats[] = { 16, 16};
+int MAX_COUNT = sizeof(melody) / 2;
+int pause = 1000;
+int rest_count = 100;
+int tone_ = 0;
+int beat = 0;
+int DEBUG = 1;
+long tempo = 10000;
+long duration = 0;
+
+
+
+
+void setup ()
+
+{
+pinMode(botao,INPUT);
+pinMode (paragem, INPUT);
+pinMode(led,OUTPUT);
+pinMode(led1,OUTPUT);
+pinMode(speakerOut, OUTPUT);
+if (DEBUG) {
+Serial.begin(9600);
+}
+}
+
+void loop(){
+estado_actual0=digitalRead(paragem);
+if(estado_actual0==HIGH){
+digitalWrite(led2, HIGH);
+//estado_actual=1;
+}
+if(estado_actual0==LOW){
+digitalWrite(led2, LOW);
+//estado_actual=0;
+}
+if(estado_actual !=estado_anterior){
+contador=contador+1;
+}
+if (contador1 == 8) {
+loop_p4();
+}else {
+loop();
+
+
+if (contador1 == 6) {
+loop_p3();
+} else {
+loop();
+
+
+
+}
+if (contador1 == 4) {
+loop_p2();
+} else {
+loop();
+
+}
+if (contador1 == 2) {
+loop_p1();
+
+} else {
+loop();
+
+}
+estado_anterior=estado_actual;
+
+}
+}
+
+void loop_p1()
+
+{
+
+
+for (int i=0; i<MAX_COUNT; i++) {
+tone_ = melody[i];
+beat = beats[i];
+
+duration = beat * tempo;
+
+
+
+delayMicroseconds(pause);
+
+if (DEBUG) { Serial.print(i);
+Serial.print(":");
+Serial.print(beat);
+Serial.print(" ");
+Serial.print(tone_);
+Serial.print(" ");
+Serial.println(duration);
+}
+
+
+
+
+
+
+
+estado_actual=digitalRead(botao);
+if(estado_actual==HIGH){
+acende_led();
+//estado_actual=1;
+}
+if(estado_actual==LOW){
+apaga_led();
+//estado_actual=0;
+}
+if(estado_actual !=estado_anterior){
+contador=contador+1;
+}
+
+if (contador >= 1) {
+digitalWrite(led1, HIGH);
+ativaToque();
+if(apito_ligado >=10){
+apito_ligado=0;
+contador=0;
+contador1=0;
+}
+
+}
+
+else {
+digitalWrite(led1, LOW);
+digitalWrite(speakerOut, LOW);
+
+
+estado_anterior=estado_actual;
+}
+}
+}
+
+
+void loop_p2()
+
+{
+
+
+
+
+
+
+for (int i=0; i<MAX_COUNT; i++) {
+tone_ = melody[i];
+beat = beats[i];
+
+duration = beat * tempo;
+
+
+
+delayMicroseconds(pause);
+
+if (DEBUG) { Serial.print(i);
+Serial.print(":");
+Serial.print(beat);
+Serial.print(" ");
+Serial.print(tone_);
+Serial.print(" ");
+Serial.println(duration);
+}
+
+
+
+
+estado_actual=digitalRead(botao);
+if(estado_actual==HIGH){
+acende_led();
+//estado_actual=1;
+}
+if(estado_actual==LOW){
+apaga_led();
+//estado_actual=0;
+}
+if(estado_actual !=estado_anterior){
+contador=contador+1;
+}
+
+if (contador >= 3) {
+digitalWrite(led1, HIGH);
+ativaToque();
+if(apito_ligado >=10){
+apito_ligado=0;
+contador=0;
+}
+
+}
+
+else {
+digitalWrite(led1, LOW);
+digitalWrite(speakerOut, LOW);
+
+
+estado_anterior=estado_actual;
+}
+}
+}
+
+
+void loop_p3()
+
+{
+
+
+
+
+
+
+for (int i=0; i<MAX_COUNT; i++) {
+tone_ = melody[i];
+beat = beats[i];
+
+duration = beat * tempo;
+
+
+
+delayMicroseconds(pause);
+
+if (DEBUG) { Serial.print(i);
+Serial.print(":");
+Serial.print(beat);
+Serial.print(" ");
+Serial.print(tone_);
+Serial.print(" ");
+Serial.println(duration);
+}
+
+
+
+
+
+
+
+estado_actual=digitalRead(botao);
+if(estado_actual==HIGH){
+acende_led();
+//estado_actual=1;
+}
+if(estado_actual==LOW){
+apaga_led();
+//estado_actual=0;
+}
+if(estado_actual !=estado_anterior){
+contador=contador+1;
+}
+
+if (contador >= 5) {
+digitalWrite(led1, HIGH);
+ativaToque();
+if(apito_ligado >=10){
+apito_ligado=0;
+contador=0;
+}
+
+}
+
+else {
+digitalWrite(led1, LOW);
+digitalWrite(speakerOut, LOW);
+
+
+estado_anterior=estado_actual;
+}
+}
+}
+
+
+void loop_p4()
+{
+
+
+
+
+
+
+for (int i=0; i<MAX_COUNT; i++) {
+tone_ = melody[i];
+beat = beats[i];
+
+duration = beat * tempo;
+
+
+
+delayMicroseconds(pause);
+
+if (DEBUG) { Serial.print(i);
+Serial.print(":");
+Serial.print(beat);
+Serial.print(" ");
+Serial.print(tone_);
+Serial.print(" ");
+Serial.println(duration);
+}
+
+
+
+
+
+
+
+estado_actual=digitalRead(botao);
+if(estado_actual==HIGH){
+acende_led();
+//estado_actual=1;
+}
+if(estado_actual==LOW){
+apaga_led();
+//estado_actual=0;
+}
+if(estado_actual !=estado_anterior){
+contador=contador+1;
+}
+
+if (contador >= 7) {
+digitalWrite(led1, HIGH);
+ativaToque();
+if(apito_ligado >=10){
+apito_ligado=0;
+contador=0;
+}
+
+}
+
+else {
+digitalWrite(led1, LOW);
+digitalWrite(speakerOut, LOW);
+
+
+estado_anterior=estado_actual;
+}
+}
+}
+
+
+void acende_led(){
+digitalWrite(led, HIGH);
+}
+
+void apaga_led(){
+digitalWrite(led, LOW);
+}
+
+void ativaToque() {
+Serial.print("entrei aqui");
+long elapsed_time = 0;
+if (tone_ > 0) {
+
+while (elapsed_time < duration) {
+
+digitalWrite(speakerOut,HIGH);
+delayMicroseconds(tone_ / 2);
+
+
+digitalWrite(speakerOut, LOW);
+delayMicroseconds(tone_ / 2);
+
+
+elapsed_time += (tone_);
+}
+}
+else {
+for (int j = 0; j < rest_count; j++) {
+delayMicroseconds(duration);
+}
+
+}
+Serial.print("sai daqui");
+apito_ligado=apito_ligado+1;
+}
