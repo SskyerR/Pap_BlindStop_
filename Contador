@@ -42,6 +42,4 @@ void acende_led(){
 digitalWrite(led, HIGH);
 }
 
-void apaga_led(){
-digitalWrite(led, LOW);
-} 
+o ze nao percebe
