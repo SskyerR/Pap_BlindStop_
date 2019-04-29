@@ -1,0 +1,513 @@
+#include <LiquidCrystal.h>
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+
+byte Clear_Bar[] = {
+  B11111,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B11111
+};
+
+byte LClear_Bar[] = {
+  B01111,
+  B11000,
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  B11000,
+  B01111
+};
+
+byte RClear_Bar[] = {
+  B11110,
+  B00011,
+  B00001,
+  B00001,
+  B00001,
+  B00001,
+  B00011,
+  B11110
+};
+
+byte Full_Bar[] = {
+  B11111,
+  B00000,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B00000,
+  B11111
+};
+
+byte LFull_Bar[] = {
+  B01111,
+  B11000,
+  B10011,
+  B10111,
+  B10111,
+  B10011,
+  B11000,
+  B01111
+};
+
+byte RFull_Bar[] = {
+  B11110,
+  B00011,
+  B11001,
+  B11101,
+  B11101,
+  B11001,
+  B00011,
+  B11110
+};
+
+byte Unlocked[] = {
+  B01110,
+  B10001,
+  B10000,
+  B11111,
+  B11011,
+  B11011,
+  B11111,
+  B00000
+};
+
+byte Locked[] = {
+  B01110,
+  B10001,
+  B10001,
+  B11111,
+  B11011,
+  B11011,
+  B11111,
+  B00000
+};
+
+const int rs = 7, en = 8, d4 = 9, d5 = 10, d6 = 11, d7 = 12;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+int GPSBaud = 9600;
+TinyGPSPlus gps;
+
+
+const int  buttonPin = A5;
+const int  pinButton = A4;
+const int  lockButton = 4;
+const int ledPin = 13;
+
+int RXPin = 3;
+int TXPin = 2;
+
+SoftwareSerial gpsSerial(RXPin, TXPin);
+
+boolean lock = false;
+boolean manual = false;
+boolean setActive = false;
+boolean longPressActive = false;
+
+long setTimer = 0;
+long longPressTime = 750;
+
+int buttonPushCounter = 0;
+//int gpsState = 0;
+//int lastgpsState = 0;
+int counter = 0;
+int buttonState = 0;
+int stateButton = 0;
+int lockstate = 0;
+int lastButtonState = 0;
+int lastStateButton = 0;
+int lastLockState = 0;
+int speakerOut = A0;
+int apito = 0;
+int bapito = 0;
+int var = 0;
+float latitude;
+float longitude;
+char data = 0;
+
+void setup() {
+
+  lcd.begin(8, 2);
+  lcd.createChar(1, Unlocked);
+  lcd.createChar(2, Locked);
+  lcd.createChar(3, Clear_Bar);
+  lcd.createChar(4, RClear_Bar);
+  lcd.createChar(5, LClear_Bar);
+  lcd.createChar(6, Full_Bar);
+  lcd.createChar(7, RFull_Bar);
+  lcd.createChar(8, LFull_Bar);
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT);
+  pinMode(pinButton, INPUT);
+  pinMode(lockButton, INPUT);
+  pinMode(speakerOut, OUTPUT);
+
+  Serial.begin(9600);
+  gpsSerial.begin(GPSBaud);
+
+  lcd.home();
+  lcd.write(byte(5));
+  lcd.write(byte(3));
+  lcd.write(byte(3));
+  lcd.write(byte(3));
+  lcd.write(byte(3));
+  lcd.write(byte(3));
+  lcd.write(byte(3));
+  lcd.write(byte(4));
+  lcd.setCursor(2, 1);
+  lcd.print("EPSM"); 
+  delay(22500);
+  lcd.setCursor(0, 0);
+  lcd.write(byte(8));
+  delay(22500);
+  lcd.setCursor(1, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(2, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(3, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(4, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(5, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(6, 0);
+  lcd.write(byte(6));
+  delay(22500);
+  lcd.setCursor(7, 0);
+  lcd.write(byte(7));
+  delay(11250);
+  lcd.clear();
+  delay(50);
+  lcd.setCursor(0, 0);
+  lcd.print("BUS STOP"); 
+  
+  Serial.println ("entrei no codigo");
+  Serial.println (" ");
+  Serial.println (" ");
+
+}
+
+void loop() {
+
+  while (gpsSerial.available() > 0)
+    if (gps.encode(gpsSerial.read()))
+      gpsvoid();
+  if (millis() > 5000 && gps.charsProcessed() < 10)
+  {
+    Serial.print("GPS nao detetado, verifique as conexoes.");
+    while (true);
+  }
+
+if(Serial.available() > 0) {
+data = Serial.read();     
+  if(data == 'p')  {
+    if (lock == 1 && manual == 1){ 
+      if (buttonPushCounter > 0) {
+  buttonPushCounter--;
+      }
+    }
+  } 
+  
+  if(data == 'm')  {
+    manual = !manual;
+    Serial.println("/n");
+    Serial.println(manual);    
+    }
+              
+}
+
+if ( buttonPushCounter == 0 ){
+ manual = false; 
+}
+
+
+  lcd.setCursor(0, 1);
+  lcd.print(buttonPushCounter);
+
+  abre_fecha_cadeado(lock);
+  /*  lcd.setCursor(7, 1);
+    if (lock==0){
+      lcd.write(1);
+    }else{
+      lcd.write(2);
+      }
+  */
+
+  // buttonState = digitalRead(buttonPin);
+  stateButton = digitalRead(pinButton); //A4
+  // lockstate = digitalRead(lockButton);
+
+  //+++++++++++++++++++++++++++++++++++++++++++//
+  lock = long_press();
+  /*
+     if (digitalRead(buttonPin) == HIGH) { //se o botão adicionar em long A5
+
+    if (setActive == false) {
+
+      setActive = true;
+      setTimer = millis();
+
+    }
+
+    if ((millis() - setTimer > longPressTime) && (longPressActive == false)) {
+
+      longPressActive = true;
+    if (buttonPushCounter > 0 ){
+      lock = !lock;
+      locking ();
+    }
+    }
+    } else {
+    if (setActive == true) {
+      if (longPressActive == true) {
+        longPressActive = false;
+
+      } else {
+      if(lock == 0 ){
+            buttonPushCounter++;
+            Serial.print("number of button pushes: ");
+            Serial.print(buttonPushCounter);
+      }
+            }
+      setActive = false;
+    }
+    }*/
+  //--------------------------------------------//
+  if (lock == 1) { // bloqueado -- reset
+    if (buttonPushCounter > 0) {
+      if (stateButton != lastStateButton) {
+        if (stateButton == HIGH) {
+
+          // buttonPushCounter--;
+          lcd.setCursor(0, 1);
+          lcd.print("       ");
+
+          // Serial.print("number of button pushes: ");
+          // Serial.print(buttonPushCounter);
+          buttonPushCounter = 0;
+          lock = 0;
+          var = 0;
+        }
+      }
+    }
+  }
+  //0101010101010101010101010101010101010101010//
+
+
+  lastButtonState = buttonState;
+  lastStateButton = stateButton;
+  lastLockState = lockstate;
+  //........................................//
+
+  apitar();
+
+  /* if (lock == 1 && buttonPushCounter == 1 && apito==0) { // quando falta uma paragem apita duas vezes
+     Serial.print("apito");
+     tone(speakerOut, 300, 250);
+     delay(250);
+     tone(speakerOut, 300, 250);
+     apito=1;
+     var = 0;
+     bapito = buttonPushCounter;
+
+    }
+    if (buttonPushCounter==0 && bapito==1 && apito == 1) { // quando falta zero paragens apita uma vez
+     apito =0;
+     var = 0;
+     tone(speakerOut, 250, 1500);
+     delay(250);
+     lock = false;
+    }
+  */
+}
+
+void apitar() {
+  if (lock == 1 && buttonPushCounter == 1 && apito == 0) { // quando falta uma paragem apita duas vezes
+    Serial.print("apito");
+    tone(speakerOut, 300, 250);
+    delay(250);
+    tone(speakerOut, 300, 250);
+    apito = 1;
+    var = 0;
+    bapito = buttonPushCounter;
+
+  }
+  if (buttonPushCounter == 0 && bapito == 1 && apito == 1) { // quando falta zero paragens apita uma vez
+    apito = 0;
+    var = 0;
+    tone(speakerOut, 250, 1500);
+    delay(250);
+    lock = false;
+  }
+}
+
+void locking () {
+  while (var < buttonPushCounter) {
+    tone(speakerOut, 600, 50);
+    delay(250);
+    Serial.print(var);
+    var++;
+  }
+}
+
+void gpsvoid()
+{
+
+
+  if (gps.location.isValid())
+  {
+
+    latitude = gps.location.lat();
+    longitude = gps.location.lng();
+
+    Serial.print("Latitude: ");
+    Serial.println(latitude, 6);
+    Serial.print("Longitude: ");
+    Serial.println(longitude, 6);
+    Serial.println("");
+
+
+    /* if ( longitude > -8.790822 && longitude < -8.791135 && latitude > 39.026497 && latitude < 39.026392 && longitude > -8.790626 && longitude < -8.791027 && latitude > 39.026763 && latitude < 39.026644) {
+       counter = 0;
+      }*/
+
+    testa_paragens();
+
+    /*if ( gps.location.lng() < -8.790822 && gps.location.lng() > -8.791135 && gps.location.lat() < 39.026497 && gps.location.lat() > 39.026392) {
+      Serial.println("estou na paragem 1");
+      if (lock == 1){
+       while (counter < 1){
+        buttonPushCounter--;
+        counter++;
+       }
+      }
+      }
+      else{
+      Serial.println("nao estou na paragem 1");
+      }*/
+    /*testa_paragem2(latitude,longitude);*/
+
+
+    /*if ( gps.location.lng() < -8.790626 && gps.location.lng() > -8.791027 && gps.location.lat() < 39.026763 && gps.location.lat() > 39.026644) {
+        Serial.println("estou na paragem 2");
+        if (lock == 1){
+          while (counter < 1){
+            buttonPushCounter--;
+            counter++;
+           }
+         }
+      }
+         else{
+          Serial.println("nao estou na paragem 2");
+         }*/
+
+  }
+  else
+  {
+    Serial.println("Local: A Obter Coordenadas...");
+  }
+
+  Serial.print("Data: ");
+  if (gps.date.isValid())
+  {
+    Serial.print(gps.date.day());
+    Serial.print("/");
+    Serial.print(gps.date.month());
+    Serial.print("/");
+    Serial.println(gps.date.year());
+  }
+  else
+  {
+    Serial.println("A Obter Dados...");
+  }
+}
+
+void testa_paragens() {
+  latitude = gps.location.lat();
+  longitude = gps.location.lng();
+  if ( longitude < -8.790822 && longitude > -8.791135 && latitude < 39.026497 && latitude > 39.026392) {
+    Serial.println("estou na paragem 1");
+    if (lock == 1 && manual == 0) {
+      while (counter < 1) {
+        buttonPushCounter--;
+        counter++;
+      }
+    }
+  }
+  else if ( longitude < -8.790626 && longitude > -8.791027 && latitude < 39.026763 && latitude > 39.026644) {
+    Serial.println("estou na paragem 2");
+    if (lock == 1 && manual == 0) {
+      while (counter < 1) {
+        buttonPushCounter--;
+        counter++;
+      }
+    }
+  }
+  else {
+    Serial.println("nao estou na paragem 1");
+    Serial.println("nao estou na paragem 2");
+    counter = 0;
+  }
+}
+
+void abre_fecha_cadeado(int lock2) {
+  lcd.setCursor(7, 1);
+  if (lock2 == 0) {
+    lcd.write(1);
+  } else {
+    lcd.write(2);
+  }
+
+}
+
+int long_press() {
+  if (digitalRead(buttonPin) == HIGH) { //se o botão adicionar em long A5
+
+    if (setActive == false) {
+
+      setActive = true;
+      setTimer = millis();
+
+    }
+
+    if ((millis() - setTimer > longPressTime) && (longPressActive == false)) {
+
+      longPressActive = true;
+      if (buttonPushCounter > 0 ) {
+        lock = !lock;
+        var = 0;
+        locking ();
+      }
+    }
+  } else {
+    if (setActive == true) {
+      if (longPressActive == true) {
+        longPressActive = false;
+
+      } else {
+        if (lock == 0 ) {
+          buttonPushCounter++;
+          Serial.print("number of button pushes: ");
+          Serial.print(buttonPushCounter);
+        }
+      }
+      setActive = false;
+    }
+  }
+
+  return lock;
+}
